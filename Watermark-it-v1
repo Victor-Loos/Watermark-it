@@ -57,7 +57,7 @@ def convertMark(imageName, size):
 
 ### Convert text
 
-def utf8_to_binary_matrix(text: str) -> np.ndarray:
+def utf8_to_binary_matrix(text: str) -> np.ndarray: #todo! renvoie que des 0 ?? 
     # Convert the text to a bytearray in UTF-8 encoding
     byte_array = bytearray(text.encode("utf-8"))
 
@@ -66,10 +66,13 @@ def utf8_to_binary_matrix(text: str) -> np.ndarray:
         
     # Create a numpy matrix array of 32x32 padded with 0
     binary_matrix = np.full((32, 32), 0, dtype=int)
+
+    # Put the binary string into the matrix
+    for i in range(len(binary_string)):
+        binary_matrix[i // 32][i % 32] = int(binary_string[i])
     
     # Convert 1 to 255 and 0 to 0    
     binary_matrix = binary_matrix * (maxVal*3.6)
-
     return binary_matrix
 
 
@@ -244,7 +247,16 @@ def recoverWatermark(img, password, outputImageName=None):
     watermarkArray = printImage(watermarkArray)
     return watermarkArray
 
-def recoverText(image, password):
+def recoverText(img, password):
+    watermarkeImage = cv2.imread(img)
+    watermarkeImage = cv2.cvtColor(watermarkeImage, cv2.COLOR_BGR2YCrCb)
+    watermarkeImage = watermarkeImage.astype(np.float32)
+    y = watermarkeImage[:,:,0]
+    Cb = watermarkeImage[:,:,1]
+    Cr = watermarkeImage[:,:,2]
+    # Select the channel
+    image = y
+
     coeffsWatermarkedImage=list(pywt.wavedec2(data = image, wavelet = 'haar', level = 1))
     dctWatermarkedCoeff = applyDCT(coeffsWatermarkedImage[0])
     
@@ -269,10 +281,10 @@ def recoverText(image, password):
             break
         
     #Save result in txt file
-    else :
+    """ else :
         file = open('result/recoveredText.txt', 'w')
         file.write(watermarkArray)
-        file.close()
+        file.close() """
     return watermarkArray
 
 
@@ -329,8 +341,8 @@ def embeddedTexte(coverImage, texte, password):
 
     # Save result
     img = Image.merge('YCbCr', colors).convert('RGB')
-    img.save('result/watermarkedImage.jpg')
-    img.save('result/watermarkedImage.png')
+    """img.save('result/watermarkedImage.jpg')
+    img.save('result/watermarkedImage.png') """
     return img
 
 
@@ -346,12 +358,24 @@ image = "original/lena.jpg"
 marque = "original/marque.png"
 watermarkeImg = "watermarkedImage.jpg"
 
-# Fonctionne pas encore avec le mot de passe
-#texte = "Test d'insertion de text  !" 
+# 124 caractères max
+texte = "Le tatouage numérique (en anglais digital watermark, « filigrane numérique ») est une technique permettant d'ajouter des inf"
+#texte = "Test d'insertion de text  !"
 
-# Utilisation des fonctions
+
+### Fonctions d'insertion d'une image
+
 watermarkeImage = embeddedImage(image,marque, password)
-#watermarkeImage.save('result/watermarkedImage.jpg')
+#watermarkeImage.save('watermarkedImage.jpg')
 
 watermarkArray = recoverWatermark(watermarkeImg, password)
-#watermarkArray.save('result/recoveredWatermark.png')
+#watermarkArray.save('recoveredWatermark.png')
+
+
+### Insertion d'un texte
+
+watermarkeImage = embeddedTexte(image,texte, password)
+#watermarkeImage.save('watermarkedImage.jpg')
+
+watermarkArray = recoverText(watermarkeImg, password)
+#print(watermarkArray)

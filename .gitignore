@@ -195,3 +195,12 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+
+# Image and folder
+original/
+result/
+result/arch/
+
+*.png
+*.jpg
