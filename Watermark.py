@@ -11,6 +11,7 @@ from typing import List
 import hashlib
 import struct
 
+import inquirer
 
 
 ##### Function Convert and resize image #####
@@ -413,6 +414,7 @@ texte = "Le tatouage numérique (digital watermark, « filigrane numérique ») 
 ############## Watermarking ##############
 
 ###### Example of use ######
+
 """ 
 ## Watermarking with image
 
@@ -432,8 +434,8 @@ watermarkArray = recoverText(result, password)
 print(watermarkArray)
 """
 
-######### Main #########
-import inquirer
+
+######### Version to use in terminal #########
 
 def main():
     """ 
