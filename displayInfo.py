@@ -1,10 +1,17 @@
 from matplotlib import pyplot as plt
 import cv2
+
 from Watermark import *
+
+import numpy as np
+
+import imageio.v3 as iio
+import skimage.color
+import skimage.util
 
 
 # Read the image and convert them in the same way as the watermarking process
-def ImageProcessing(image, marque, Iresult, Mresult, x):
+def imageProcessing(image, marque, Iresult, Mresult, x):
     # Get the size of the mark
     imageArray, colors, size = convertImage(Iresult)
     Msize = (int(((size[1]/2)/8)/x), int(((size[0]/2)/8)/x)) # DCT + Block + random
@@ -43,7 +50,7 @@ def ImageProcessing(image, marque, Iresult, Mresult, x):
 
 #### Display results ####
 def plotResult(readImage, marqueImg, waterimg, recovwater, x):
-    readImage, usedImage, marqueImg, waterimg, recovwater  = ImageProcessing(readImage, marqueImg, waterimg, recovwater, x)
+    readImage, usedImage, marqueImg, waterimg, recovwater  = imageProcessing(readImage, marqueImg, waterimg, recovwater, x)
     
     # Create a figure with 4 subplots
     fig, axes = plt.subplots(ncols=4, figsize=(15, 3))
@@ -77,7 +84,7 @@ def plotResult(readImage, marqueImg, waterimg, recovwater, x):
 
 ####### Compare difference between original and watermarked image #######
 def plotDiff(readImage, marqueImg, waterimg, recovwater, x):
-    readImage, usedImage, marqueImg, waterimg, recovwater = ImageProcessing(readImage, marqueImg, waterimg, recovwater, x)
+    readImage, usedImage, marqueImg, waterimg, recovwater = imageProcessing(readImage, marqueImg, waterimg, recovwater, x)
 
     # Convert marqueImg from binary PIL to numpy array
     marqueNp = np.array(marqueImg)
@@ -126,6 +133,122 @@ def plotDiff(readImage, marqueImg, waterimg, recovwater, x):
     plt.show()
 
 
+
+######## Histogram ########
+
+def plot_grayscale_histogram(image): 
+    if type(image) == str:
+        # read the image of a plant seedling as grayscale from the outset
+        image = iio.imread(img, mode="L")
+    # convert the image to float dtype with a value range from 0 to 1
+    image = skimage.util.img_as_float(image)
+    # create the histogram
+    histogram, bin_edges = np.histogram(image, bins=256, range=(0, 1))
+    # configure and draw the histogram figure
+    plt.figure()
+    plt.figure(figsize=(13, 5))
+    plt.title("Grayscale Histogram")
+    plt.xlabel("grayscale value")
+    plt.ylabel("pixel count")
+    plt.xlim([0.0, 1.0])  # <- named arguments do not work here
+    plt.plot(bin_edges[0:-1], histogram)  # <- or here
+    plt.show()
+
+def plot_color_histogram(image):
+    if type(image) == str:
+        image = iio.imread(uri=image)
+    # tuple to select colors of each channel line
+    colors = ("red", "green", "blue")
+    
+    # Histogram plot, with three lines, one for each color
+    plt.figure()
+    plt.figure(figsize=(13, 5))
+    plt.xlim([0, 256])
+    
+    for channel_id, color in enumerate(colors):
+        # create histogram for the current color
+        histogram, bin_edges = np.histogram(
+            image[:, :, channel_id], bins=256, range=(0, 256)
+        )
+        plt.plot(bin_edges[0:-1], histogram, color=color)
+    
+    plt.title("Color Histogram")
+    plt.xlabel("Color value")
+    plt.ylabel("Pixel count")
+    plt.show()
+    
+    
+def plot_cie_ycbcr_y_histogram(image):
+    if type(image) == str:
+        image = iio.imread(uri=image)
+    # Convert it to the CIE YCbCr color space
+    image = skimage.color.rgb2ycbcr(image)
+    # extract the Y channel
+    image = image[:, :, 0]
+    # create the histogram
+    histogram, bin_edges = np.histogram(image, bins=256, range=(0, 256))
+    # configure and draw the histogram figure
+    plt.figure()
+    plt.figure(figsize=(13, 5))
+    plt.title("CIE Y Histogram")
+    plt.xlabel("CIE Y value")
+    plt.ylabel("pixel count")
+    plt.xlim([0.0, 256.0])  # <- named arguments do not work here
+    plt.plot(bin_edges[0:-1], histogram)  # <- or here
+    plt.show()
+    
+def plot_cie_ycbcr_cb_histogram(image):
+    if type(image) == str:
+        image = iio.imread(uri=image)
+    # Cconvert it to the CIE YCbCr color space
+    image = skimage.color.rgb2ycbcr(image)
+    # extract the Cb channel
+    image = image[:, :, 1]
+    # create the histogram
+    histogram, bin_edges = np.histogram(image, bins=256, range=(0, 256))
+    # configure and draw the histogram figure
+    plt.figure()
+    plt.figure(figsize=(13, 5))
+    plt.title("CIE Cb Histogram")
+    plt.xlabel("CIE Cb value")
+    plt.ylabel("pixel count")
+    plt.xlim([0.0, 256.0])  # <- named arguments do not work here
+    plt.plot(bin_edges[0:-1], histogram)  # <- or here
+    plt.show()
+    
+def plot_cie_ycbcr_cr_histogram(image):
+    if type(image) == str:
+        image = iio.imread(uri=image)
+    # Convert it to the CIE YCbCr color space
+    image = skimage.color.rgb2ycbcr(image)
+    # extract the Cr channel
+    image = image[:, :, 2]
+    # create the histogram
+    histogram, bin_edges = np.histogram(image, bins=256, range=(0, 256))
+    # configure and draw the histogram figure
+    plt.figure()
+    plt.figure(figsize=(13, 5))
+    plt.title("CIE Cr Histogram")
+    plt.xlabel("CIE Cr value")
+    plt.ylabel("pixel count")
+    plt.xlim([0.0, 256.0])  # <- named arguments do not work here
+    plt.plot(bin_edges[0:-1], histogram)  # <- or here
+    plt.show()
+
+def plot_all_histograms(image):
+    if type(image) == str:
+        image = iio.imread(uri=image)
+    plot_color_histogram(image)
+    plot_grayscale_histogram(image)
+    # luminessance
+    plot_cie_ycbcr_y_histogram(image)
+    # chrominance
+    plot_cie_ycbcr_cb_histogram(image)
+    plot_cie_ycbcr_cr_histogram(image)
+
+    
+    
+    
 
 ################## Exemple ##################
 

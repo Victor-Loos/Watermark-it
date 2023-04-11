@@ -1,7 +1,15 @@
 import cv2
-from Watermark import *
-from Plot import *
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+import numpy as np
 
+#from Watermark import *
+from displayInfo import *
+
+import imageio.v3 as iio
+import skimage.color
+import skimage.util
 
 # Peak Signal to Noise Ratio
 def compute_psnr(img1, img2):
@@ -132,7 +140,7 @@ def restoreCrop(img, originalImage):
 
 def attackAll(image, marque, Iresult, Mresult, x, password):
     ### Read images ###
-    readImage, usedImage, marqueImg, waterimg, recovwater  = ImageProcessing(image, marque, Iresult, Mresult, x)
+    readImage, usedImage, marqueImg, waterimg, recovwater  = imageProcessing(image, marque, Iresult, Mresult, x)
     originalImage = usedImage
     originalImage = cv2.cvtColor(originalImage, cv2.COLOR_BGR2GRAY)
     originalMarque = np.array(marqueImg, dtype=np.uint8)
@@ -199,18 +207,22 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
 
     # Chop 30%
     img = noisy("chop30", watermarked)
+    img = restoreCrop(img, originalImage)
     cv2.imwrite("attack/chop30.jpg", img)
     extracted = recoverWatermark("attack/chop30.jpg", password)
     axes[3, 0].set_title("Chop 30% Image")
     axes[3, 0].imshow(img, cmap='gray')
     axes[3, 1].set_title("Extracted Watermark")
     axes[3, 1].imshow(extracted, cmap='gray')
-    #psnr2 = compute_psnr(originalMarque, extracted)
-    #axes[3, 1].set_xlabel(f"PSNR de la marque : {psnr2:.2f}", fontsize=8)
+    psnr1 = compute_psnr(originalImage, img)
+    psnr2 = compute_psnr(originalMarque, extracted)
+    axes[3, 0].set_xlabel(f"PSNR de l'image : {psnr1:.2f}", fontsize=8)
+    axes[3, 1].set_xlabel(f"PSNR de la marque : {psnr2:.2f}", fontsize=8)
 
 
 
     ### Image Filtering Attacks ###
+    
     # Gaussian Noise
     img = noisy("gauss", watermarked)
     cv2.imwrite("attack/gaussian.jpg", img)
@@ -271,7 +283,7 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
 #### Plot individual images ####
 def attackOne(image, marque, Iresult, Mresult, x, password):
     ### Read images ###
-    readImage, usedImage, marqueImg, waterimg, recovwater  = ImageProcessing(image, marque, Iresult, Mresult, x)
+    readImage, usedImage, marqueImg, waterimg, recovwater  = imageProcessing(image, marque, Iresult, Mresult, x)
     originalImage = usedImage
     originalImage = cv2.cvtColor(originalImage, cv2.COLOR_BGR2GRAY)
     originalMarque = np.array(marqueImg, dtype=np.uint8)
@@ -400,16 +412,18 @@ def attackOne(image, marque, Iresult, Mresult, x, password):
 ########## Main ##########
 
 ### Parameters ###
-""" 
+
 x = 2 # Divise la taille de la marque
 password = "my_password"
 
 image = "original/leopard.jpg"
 marque = "original/marque/dragon.jpg"
-Iresult = "result/watermarkedImage.jpg"
-Mresult = "result/recoveredWatermark.png"
+#Iresult = "result/watermarkedImage.jpg"
+Iresult = "result/watermarkedImageLdown.jpg"
+#Mresult = "result/recoveredWatermark.png"
+Mresult = "result/recoveredWatermarkLdown.png"
 
 
 attackAll(image, marque, Iresult, Mresult, x, password)
-attackOne(image, marque, Iresult, Mresult, x, password)
-"""
+#attackOne(image, marque, Iresult, Mresult, x, password)
+

@@ -13,8 +13,10 @@ YCbCr -> DWT LL -> 8x8 -> DCT -> Flipping -> IDCT -> IDWT LL -> YCbCr
 
 La méthode utilisée est celle du basculement de fréquence (Frequency-Flipping). Appliqué aux coefficients obtenus par la DCT des blocs de 8x8 pixel de l'image (matrice de normalisation DCT). L'idée est d'inverser 2 des coefficients de chaque bloc s'il ne respecte pas la règle suivante :
 
-C1 >  C2 --> 0
-C1 <= C2 --> 1
+$$\begin{aligned}
+& C1 \:\: > \; C2 \longrightarrow 0 \\
+& C1 <= C2 \longrightarrow 1
+\end{aligned}$$
 
 (avec C1 et C2 les coefficients à comparer et 0 et 1 les valeurs à attribuer correspondant à la marque en binaire)
 
@@ -33,14 +35,14 @@ watermarkArray = recoverWatermark(result, password) # Wsize=(x, y) for specific 
 watermarkArray.save('result/recoveredWatermark.png')
 ```
 
-### Affichage des images et comparaison
+#### Affichage des images et comparaison
 Fichier `Plot.py`
 ```python
 plotResult(image, marque, Iresult, Mresult, x)
 
 plotDiff(image, marque, Iresult, Mresult, x) 
 ```
-### Attaque de l'image watermarkée
+#### Attaque de l'image watermarkée
 Fichier `Attack.py`
 ```python
 # Vue groupée
@@ -50,6 +52,7 @@ attackOne(image, marque, Iresult, Mresult, x, password)
 ```
 
 ### Watermarking avec du texte
+Fichier `Watermark.py`
 ```python
 watermarkeImage = embeddedTexte(image,texte, password)
 watermarkeImage.save(result)
@@ -60,7 +63,7 @@ print(watermarkArray)
 
 ## Application
 
-Intégration dans une application Android : [Watermarker](https://github.com/Skelrin/Watermarker)
+Intégration dans l'application Android : [Watermarker](https://github.com/Skelrin/Watermarker)
 
 
 ### Archive

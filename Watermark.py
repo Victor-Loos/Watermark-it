@@ -12,13 +12,23 @@ import hashlib
 import struct
 
 import inquirer
-
+from displayInfo import *
+#from attack import *
 
 ##### Function Convert and resize image #####
 
 def convertImage(imageName):
     # Read the image and convert it to RGB
     img = cv2.imread(imageName)
+
+    """ # To avoid the appearance of white pixels
+    # 50% of "dark" pixels
+    if np.mean(img < 100) >= 0.5:
+        img = imageCorrection(img)
+    # 20% of "dark" pixels 
+    elif np.mean(img < 100) >= 0.2:
+        img = imageCorrection(img, 0.3) """
+    
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
     # Get the image dimensions and resize it if necessary
@@ -72,6 +82,39 @@ def convertMark(imageName, Msize):
     img = cv2.threshold(img, 128, maxVal, cv2.THRESH_BINARY)[1]
     markArray = np.array(img, dtype=float).reshape((size[0], size[1]))
     return markArray
+
+
+
+# Test #
+def imageCorrection(image, coef=1):
+    if type(image) == str:
+        image = cv2.imread(image)
+        
+    #### Add50 :
+    # Convert the image to YCrCb color space
+    img_ycc = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
+    # Get the luminance (Y) channel
+    y_channel = img_ycc[:, :, 0]
+    
+    # Increase the value of the pixels by 50 and cap the values at 255
+    #y_channel[y_channel < 205] = y_channel[y_channel < 205] + 50
+    y_channel[y_channel < 220] = y_channel[y_channel < 220] + 20*coef
+    y_channel[y_channel < 150] = y_channel[y_channel < 150] + 30*coef
+    y_channel[y_channel < 50] = y_channel[y_channel < 50] + 5*coef
+
+    # Update the Y channel in the YCrCb image
+    img_ycc[:, :, 0] = y_channel
+    # Convert the modified image back to BGR color space
+    img_modified = cv2.cvtColor(img_ycc, cv2.COLOR_YCrCb2BGR)
+
+
+    #### GammaCorrection :
+    img = img_modified.astype(np.float32) / 255.0
+    img = cv2.pow(img, 1.8*(coef*1.9)) # 2
+    img = np.uint8(img * 255)
+
+    return img
+
 
 
 ## Convert text 
@@ -387,7 +430,7 @@ def recoverText(image, password=None, nbChr=None):
 
 ############## Parameters ##############
 # Différence de valeur des coeff de la DCT de l'image 
-maxVal = 20 # recomendation : 1 à 50 
+maxVal = 1 # recomendation : 1 à 50 
 """ 0-8 -> coefficient des bloc 8x8 de la DCT à utiliser
 Par défaut :
 C(4,1) >  C(2,3) --> 0
@@ -445,7 +488,7 @@ def main():
     """
 
     questions = [
-        inquirer.List("type", message="Choose type", choices=["Embed", "Extract"]),
+        inquirer.List("type", message="Choose type", choices=["Embed", "Extract", "Attack", "Display"]),
         inquirer.List("format", message="Choose format", choices=["Image", "Text"])
     ]
 
@@ -484,6 +527,24 @@ def main():
             password = input("Enter the password: ")
             extracted_text = recoverText(image_path, password)
             print(f"Extracted text: {extracted_text}")
+
+    elif answers["type"] == "Attack":
+        image = input("Enter path to original image: ")
+        marque = input("Enter path to watermark image: ")
+        Iresult = input("Enter path to watermarked image: ")
+        Mresult = input("Enter path to extracted watermark: ")
+        x = int(input("Enter the size of the matrix used for the watermark: "))
+        password = input("Enter the password: ")
+        attackAll(image, marque, Iresult, Mresult, x, password)
+
+    elif answers["type"] == "Display":
+        image = input("Enter path to original image: ")
+        marque = input("Enter path to watermark image: ")
+        Iresult = input("Enter path to watermarked image: ")
+        Mresult = input("Enter path to extracted watermark: ")
+        plotResult(image, marque, Iresult, Mresult, x)
+        plotDiff(image, marque, Iresult, Mresult, x)        
+
 
 
 if __name__ == "__main__":
