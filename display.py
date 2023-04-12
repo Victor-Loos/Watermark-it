@@ -1,9 +1,11 @@
 from matplotlib import pyplot as plt
 import cv2
 
-from Watermark import *
+from watermark import convertImage
+    
 
 import numpy as np
+from PIL import Image
 
 import imageio.v3 as iio
 import skimage.color

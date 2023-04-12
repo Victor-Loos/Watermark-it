@@ -4,12 +4,9 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 
-#from Watermark import *
-from displayInfo import *
+from watermark import *
+from display import *
 
-import imageio.v3 as iio
-import skimage.color
-import skimage.util
 
 # Peak Signal to Noise Ratio
 def compute_psnr(img1, img2):
@@ -30,6 +27,8 @@ def NCC(img1, img2):
     img1 = img1.astype(float) / 255.
     img2 = img2.astype(float) / 255.
     return np.sum(img1 * img2) / (np.sqrt(np.sum(img1 ** 2)) * np.sqrt(np.sum(img2 ** 2)))
+
+#def NC(img1, img2):
 
 
 
@@ -412,18 +411,16 @@ def attackOne(image, marque, Iresult, Mresult, x, password):
 ########## Main ##########
 
 ### Parameters ###
-
+""" 
 x = 2 # Divise la taille de la marque
 password = "my_password"
 
 image = "original/leopard.jpg"
 marque = "original/marque/dragon.jpg"
-#Iresult = "result/watermarkedImage.jpg"
-Iresult = "result/watermarkedImageLdown.jpg"
-#Mresult = "result/recoveredWatermark.png"
-Mresult = "result/recoveredWatermarkLdown.png"
+Iresult = "result/watermarkedImage.jpg"
+Mresult = "result/recoveredWatermark.png"
 
 
 attackAll(image, marque, Iresult, Mresult, x, password)
 #attackOne(image, marque, Iresult, Mresult, x, password)
-
+"""

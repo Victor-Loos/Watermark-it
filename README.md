@@ -14,7 +14,7 @@ YCbCr -> DWT LL -> 8x8 -> DCT -> Flipping -> IDCT -> IDWT LL -> YCbCr
 La méthode utilisée est celle du basculement de fréquence (Frequency-Flipping). Appliqué aux coefficients obtenus par la DCT des blocs de 8x8 pixel de l'image (matrice de normalisation DCT). L'idée est d'inverser 2 des coefficients de chaque bloc s'il ne respecte pas la règle suivante :
 
 $$\begin{aligned}
-& C1 \:\: > \; C2 \longrightarrow 0 \\
+& C1 \,\,\, > \,\, C2 \longrightarrow 0 \\
 & C1 <= C2 \longrightarrow 1
 \end{aligned}$$
 
