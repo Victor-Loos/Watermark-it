@@ -29,8 +29,8 @@ def main():
     Then it asks for the password and the path of the image.
     """
 
-    x = 1
-    
+    x = 1.3
+
     questions = [
         inquirer.List("type", message="Choose type", choices=["Embed", "Extract", "Display", "Attack"]),
         inquirer.List("format", message="Choose format", choices=["Image", "Text"])
@@ -44,7 +44,7 @@ def main():
         image_path = input("Enter path to original image: ")
         if answers["format"] == "Image":
             watermark_path = input("Enter path to watermark image: ")
-            password = input("Chose a password: ")
+            password = input("Choose a password: ")
             watermarked_image = embeddedImage(image_path, watermark_path, password)
             output_path = input("Enter path to save watermarked image: ")
             watermarked_image.save(output_path)
@@ -52,7 +52,7 @@ def main():
 
         elif answers["format"] == "Text":
             text = input("Enter text to be used as watermark: ")
-            password = input("Chose a password: ")
+            password = input("Choose a password: ")
             watermarked_image = embeddedTexte(image_path, text, password)
             output_path = input("Enter path to save watermarked image: ")
             watermarked_image.save(output_path)

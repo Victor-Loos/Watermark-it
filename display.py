@@ -2,7 +2,6 @@ from matplotlib import pyplot as plt
 import cv2
 
 from watermark import convertImage
-    
 
 import numpy as np
 from PIL import Image

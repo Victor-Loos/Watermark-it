@@ -202,5 +202,5 @@ original/
 result/
 result/arch/
 
-*.png
-*.jpg
+#*.png
+#*.jpg

@@ -16,11 +16,12 @@ import struct
 def convertImage(imageName):
     # Read the image and convert it to RGB
     img = cv2.imread(imageName)
+    # If the image is not in a cv2 compatible format, convert it
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
     # Get the image dimensions and resize it if necessary
     height, width = img.shape[:2]
-    # Resize to have minimum 2048 in width or height with the ratio of the original image
+    """ # Resize to have minimum 2048 in width or height with the ratio of the original image
     if height < 2048 and width < 2048:
         if height > width:
             width = math.ceil(width*2048/height)
@@ -28,7 +29,7 @@ def convertImage(imageName):
         else:
             height = math.ceil(height*2048/width)
             width = 2048   
-        img = cv2.resize(img, (width, height))         
+        img = cv2.resize(img, (width, height)) """         
         
     if height % 8 != 0 or width % 8 != 0:
         height = math.ceil(height/8)*8
@@ -157,18 +158,17 @@ def password_to_position(password, Msize, nbCoords):
 
     return [(i % width, i // width) for i in coords]
 
+
 def generate_coordinates(Msize, nbCoords):
-    width, height = Msize
+    # initialize an empty list
     coords = []
-    x, y = 0, 0
-    for i in range(int(nbCoords)):
-        coords.append((x, y))
-        x += 1
-        if x == width:
-            x = 0
-            y += 1
-        if y == height:
-            break
+    # generate all possible combinations of two integers
+    for x in range(0, Msize[0]):
+        for y in range(0, Msize[1]):
+            # create a tuple of two integers and append it to the list
+            coords.append((y, x))
+    # Cut the list to the required number of coordinates
+    coords = coords[:nbCoords]
     return coords
 
 
@@ -206,24 +206,60 @@ def embedWatermark(watermarkArray, pixel_positions, originalImage):
     return originalImage  
 
 
+def embedWatermarkDirect(watermarkArray, originalImage):
+    watermarkFlat = watermarkArray.ravel() # ravel() is used to convert 2D array to 1D array
+    height, width = originalImage.shape[:2]
+    pixel_count = height * width // 64 # 64 pixels per 8x8 block
+    ind = 0
+    for i in range(pixel_count):
+        x, y = divmod(i, width // 8)
+        subdct = originalImage[x*8:x*8+8, y*8:y*8+8]
+        # Check if the pixel is 0 or 255
+        if ind < len(watermarkFlat):
+            if watermarkFlat[ind] == 0:
+                # If the pixel is 0 we want C1 > C2
+                if subdct[C1x][C1y] < subdct[C2x][C2y]+maxVal:
+                    # Flip the frequency and add the maxVal
+                    subdct[C1x][C1y], subdct[C2x][C2y] = subdct[C2x][C2y], subdct[C1x][C1y]
+                    if subdct[C1x][C1y] < subdct[C2x][C2y]+maxVal*10:
+                        subdct[C1x][C1y] += maxVal
+                        subdct[C2x][C2y] -= maxVal
+            else:
+                if subdct[C1x][C1y] >= subdct[C2x][C2y]-maxVal:
+                    # Flip the frequency
+                    subdct[C1x][C1y], subdct[C2x][C2y] = subdct[C2x][C2y], subdct[C1x][C1y]
+                    if subdct[C1x][C1y] >= subdct[C2x][C2y]-maxVal*10:
+                        subdct[C1x][C1y] -= maxVal
+                        subdct[C2x][C2y] += maxVal
+            originalImage[x*8:x*8+8, y*8:y*8+8] = subdct
+            ind += 1
+    return originalImage  
+
+
 ## Function that links the different functions for watermark insertion
 
-def embeddedImage(coverImage, watermarkImage, password=None): #Todo
+def embeddedImage(coverImage, watermarkImage, password=None): 
     imageArray, colors, size = convertImage(coverImage)
     Isize = (int(size[1]/2/8), int(size[0]/2/8)) # Available space for watermark
     Wsize = (int(size[1]/2/8/x), int(size[0]/2/8/x)) # Watermark size
     watermarkArray = convertMark(watermarkImage, Wsize)
     nbCoords = watermarkArray.shape[0] * watermarkArray.shape[1]
     
-    if password is not None:
-        pixel_positions = password_to_position(password, Isize, nbCoords)
-    else :
-        pixel_positions = generate_coordinates(Isize, nbCoords)
-
     coeffsImage = list(pywt.wavedec2(data=imageArray, wavelet = 'haar', level = 1))
-    dctArray = applyDCT(coeffsImage[0]) # [0] corresponds to cH subband (cH = LH)    
+    dctArray = applyDCT(coeffsImage[0]) # [0] corresponds to cH subband (cH = LH)  
 
-    dctArray = embedWatermark(watermarkArray, pixel_positions, dctArray)
+    if password is not None:
+        if len(password) > 0:
+            # position shuffling
+            pixel_positions = password_to_position(password, Isize, nbCoords)
+            dctArray = embedWatermark(watermarkArray, pixel_positions, dctArray)
+        else:
+            # Password is empty
+            dctArray = embedWatermarkDirect(watermarkArray, dctArray)
+    else:
+        # No password
+        dctArray = embedWatermarkDirect(watermarkArray, dctArray)
+        
 
     coeffsImage[0] = inverseDCT(dctArray)
     imageArrayH=pywt.waverec2(coeffsImage, 'haar')
@@ -247,11 +283,19 @@ def embeddedImage(coverImage, watermarkImage, password=None): #Todo
 
     # Convert YCbCr array to PIL Image object
     YCbCr_img = Image.fromarray(YCbCr_arr.astype(np.uint8), mode='YCbCr')
+    
+    # Convert YCbCr image to RGB
+    YCbCr_img = YCbCr_img.convert('RGB')
 
     return YCbCr_img
 
 
 def embeddedTexte(coverImage, texte, password=None):
+    if type(texte) == str:
+        # read the text file with texte as the path
+        with open(texte, 'r') as f:
+            texte = f.read()
+        
     texte = texte + '---'
     Tsize = int((len(texte)+7)*8)
     imageArray, colors, size = convertImage(coverImage)
@@ -268,15 +312,21 @@ def embeddedTexte(coverImage, texte, password=None):
     # Convert list of characters to numpy array of int64
     intArray = np.array(charList, dtype=np.int64)
     
-    if password is not None:
-        pixel_positions = password_to_position(password, Isize, Tsize)
-    else:
-        pixel_positions = generate_coordinates(Isize, Tsize)
-    
     coeffsImage = list(pywt.wavedec2(data=imageArray, wavelet = 'haar', level = 1))
     dctArray = applyDCT(coeffsImage[0])
     
-    dctArray = embedWatermark(intArray, pixel_positions, dctArray)
+    if password is not None:
+        if len(password) > 0:
+            # position shuffling
+            pixel_positions = password_to_position(password, Isize, Tsize)
+            dctArray = embedWatermark(intArray, pixel_positions, dctArray)
+        else:
+            # Password is empty
+            dctArray = embedWatermarkDirect(intArray, dctArray)
+    else:
+        # No password
+        dctArray = embedWatermarkDirect(intArray, dctArray)
+    
 
     coeffsImage[0] = inverseDCT(dctArray)
     imageArrayH=pywt.waverec2(coeffsImage, 'haar')
@@ -322,6 +372,22 @@ def getWatermark(dctWatermarkedCoeff, pixel_positions, watermarkSize=None):
     return watermark
 
 
+def getWatermarkDirect(dctWatermarkedCoeff, watermarkSize=None):
+    subwatermarks = []
+    for x in range(dctWatermarkedCoeff.shape[0] // 8):
+        for y in range(dctWatermarkedCoeff.shape[1] // 8):
+            coeffSlice = dctWatermarkedCoeff[x*8:x*8+8, y*8:y*8+8]
+            if coeffSlice[C1x][C1y] > coeffSlice[C2x][C2y]:
+                subwatermarks.append(0)
+            else:
+                subwatermarks.append(1)
+    if watermarkSize is None: # For the text watermark
+        return subwatermarks
+    watermark = np.array(subwatermarks[:watermarkSize*watermarkSize]).reshape(watermarkSize, watermarkSize)
+    watermark = watermark * 255
+    return watermark
+
+
 ## Function that links the different functions for watermark extraction
 
 def recoverWatermark(image, password=None, Wsize=None):
@@ -344,12 +410,18 @@ def recoverWatermark(image, password=None, Wsize=None):
     coeffsWatermarkedImage=list(pywt.wavedec2(data = imageArray, wavelet = 'haar', level = 1))
     dctWatermarkedCoeff = applyDCT(coeffsWatermarkedImage[0])
     
-    if password is not None:
-        pixel_positions = password_to_position(password, Isize, nbCoords)
+    if password is not None: #todo
+        if len(password) > 0:
+            # position shuffling
+            pixel_positions = password_to_position(password, Isize, nbCoords)
+            watermarkArray = getWatermark(dctWatermarkedCoeff, pixel_positions, Wlength)        
+        else:
+            # Password is empty
+            watermarkArray = getWatermarkDirect(dctWatermarkedCoeff, Wlength)
     else:
-        pixel_positions = generate_coordinates(Isize, nbCoords)
+        # No password
+        watermarkArray = getWatermarkDirect(dctWatermarkedCoeff, Wlength)    
     
-    watermarkArray = getWatermark(dctWatermarkedCoeff, pixel_positions, Wlength)
     watermarkArray =  np.uint8(watermarkArray)
     watermarkArray = Image.fromarray(watermarkArray)
     return watermarkArray
@@ -377,11 +449,17 @@ def recoverText(image, password=None, nbChr=None):
     dctWatermarkedCoeff = applyDCT(coeffsWatermarkedImage[0])
     
     if password is not None:
-        pixel_positions = password_to_position(password, Isize, nbCoords)
+        if len(password) > 0:
+            # position shuffling
+            pixel_positions = password_to_position(password, Isize, nbCoords)
+            watermarkArray = getWatermark(dctWatermarkedCoeff, pixel_positions, None)
+        else:
+            # Password is empty
+            watermarkArray = getWatermarkDirect(dctWatermarkedCoeff, None)
     else: 
-        pixel_positions = generate_coordinates(Isize, nbCoords)
+        # No password
+        watermarkArray = getWatermarkDirect(dctWatermarkedCoeff, None)
     
-    watermarkArray = getWatermark(dctWatermarkedCoeff, pixel_positions, None)
     # If the watermark is not in list format convert it
     if type(watermarkArray) != list:
         watermarkArray = [int(j) for j in watermarkArray.flatten()] 
@@ -415,7 +493,7 @@ C1x, C1y = 4, 1 # 4, 1
 C2x, C2y = 2, 3 # 2, 3
 
 # Taille de la matrice utilisée pour la marque 
-x = 1 # Divise la taille de la marque
+x = 1.3 # Divise la taille de la marque
 # Taille de l'image/2/8/x -> Dct2D/Bloc8x8/x
 
 

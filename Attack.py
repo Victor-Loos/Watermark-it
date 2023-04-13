@@ -27,8 +27,7 @@ def NCC(img1, img2):
     img1 = img1.astype(float) / 255.
     img2 = img2.astype(float) / 255.
     return np.sum(img1 * img2) / (np.sqrt(np.sum(img1 ** 2)) * np.sqrt(np.sum(img2 ** 2)))
-
-#def NC(img1, img2):
+    
 
 
 
@@ -38,7 +37,7 @@ def noisy(noise_typ,image):
         row,col= image.shape
         mean = 0
         #var = 0.001
-        var = 0.05
+        var = 0.08
         sigma = var**0.5
         gauss = np.random.normal(mean,sigma,(row,col))
         gauss = gauss.reshape(row,col)
@@ -49,7 +48,7 @@ def noisy(noise_typ,image):
     elif noise_typ == "s&p":
         row, col = image.shape[:2]  # get the row and column dimensions of the image
         s_vs_p = 0.5
-        amount = 0.00003
+        amount = 0.3
         out = np.copy(image)
 
         # Salt mode
@@ -77,7 +76,7 @@ def noisy(noise_typ,image):
         gauss = np.random.randn(row,col)
         gauss = gauss.reshape(row,col)        
         #noisy = image + image * gauss
-        noisy = image + image * gauss*0.25
+        noisy = image + image * gauss*0.20
         return noisy
     elif noise_typ == "rotate90" :
         angle = 90
@@ -105,7 +104,7 @@ def noisy(noise_typ,image):
     
     elif noise_typ=="jpeg":
         # encode image as a jpeg with quality 50
-        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 45]
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 40]
         result, encimg = cv2.imencode('.jpg', image, encode_param)
         # decode image
         decimg = cv2.imdecode(encimg, 1)
@@ -174,22 +173,22 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
     axes[0, 1].set_title("Recovered Watermark")
     axes[0, 1].imshow(extracted, cmap='gray')
     psnr1 = compute_psnr(originalImage, watermarked)
-    psnr2 = compute_psnr(originalMarque, extracted)
-    axes[0, 0].set_xlabel(f"PSNR de l'image : {psnr1:.2f}", fontsize=8)
-    axes[0, 1].set_xlabel(f"PSNR de la marque : {psnr2:.2f}", fontsize=8)
+    NCC2 = NCC(originalMarque, extracted)
+    axes[0, 0].set_xlabel(f"PSNR : {psnr1:.2f}", fontsize=8)
+    axes[0, 1].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
 
     # jpeg
     img = noisy("jpeg", watermarked)
     cv2.imwrite("attack/jpeg.jpg", img) 
     extracted = recoverWatermark("attack/jpeg.jpg", password)
-    axes[1, 0].set_title("Jpeg 45% Image")
+    axes[1, 0].set_title("Jpeg 40% Image")
     axes[1, 0].imshow(img, cmap='gray')
     axes[1, 1].set_title("Extracted Watermark")
     axes[1, 1].imshow(extracted, cmap='gray')
     psnr1 = compute_psnr(originalImage, img)
-    psnr2 = compute_psnr(originalMarque, extracted)
-    axes[1, 0].set_xlabel(f"PSNR de l'image : {psnr1:.2f}", fontsize=8)
-    axes[1, 1].set_xlabel(f"PSNR de la marque : {psnr2:.2f}", fontsize=8)
+    NCC2 = NCC(originalMarque, extracted)
+    axes[1, 0].set_xlabel(f"PSNR : {psnr1:.2f}", fontsize=8)
+    axes[1, 1].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
 
 
     ### Geometric Attacks ###
@@ -201,8 +200,8 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
     axes[2, 0].imshow(img, cmap='gray')
     axes[2, 1].set_title("Extracted Watermark")
     axes[2, 1].imshow(extracted, cmap='gray')
-    psnr2 = compute_psnr(originalMarque, extracted)
-    axes[2, 1].set_xlabel(f"PSNR de la marque : {psnr2:.2f}", fontsize=8)
+    NCC2 = NCC(originalMarque, extracted)
+    axes[2, 1].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
 
     # Chop 30%
     img = noisy("chop30", watermarked)
@@ -214,9 +213,9 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
     axes[3, 1].set_title("Extracted Watermark")
     axes[3, 1].imshow(extracted, cmap='gray')
     psnr1 = compute_psnr(originalImage, img)
-    psnr2 = compute_psnr(originalMarque, extracted)
+    NCC2 = NCC(originalMarque, extracted)
     axes[3, 0].set_xlabel(f"PSNR de l'image : {psnr1:.2f}", fontsize=8)
-    axes[3, 1].set_xlabel(f"PSNR de la marque : {psnr2:.2f}", fontsize=8)
+    axes[3, 1].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
 
 
 
@@ -231,9 +230,9 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
     axes[0, 3].set_title("Extracted Watermark")
     axes[0, 3].imshow(extracted, cmap='gray')
     psnr1 = compute_psnr(originalImage, img)
-    psnr2 = compute_psnr(originalMarque, extracted)
-    axes[0, 2].set_xlabel(f"PSNR de l'image : {psnr1:.2f}", fontsize=8)
-    axes[0, 3].set_xlabel(f"PSNR de la marque : {psnr2:.2f}", fontsize=8)
+    NCC2 = NCC(originalMarque, extracted)
+    axes[0, 2].set_xlabel(f"PSNR : {psnr1:.2f}", fontsize=8)
+    axes[0, 3].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
 
     # Salt and Pepper Noise
     img = noisy("s&p", watermarked)
@@ -244,9 +243,9 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
     axes[1, 3].set_title("Extracted Watermark")
     axes[1, 3].imshow(extracted, cmap='gray')
     psnr1 = compute_psnr(originalImage, img)
-    psnr2 = compute_psnr(originalMarque, extracted)
+    NCC2 = NCC(originalMarque, extracted)
     axes[1, 2].set_xlabel(f"PSNR de l'image : {psnr1:.2f}", fontsize=8)
-    axes[1, 3].set_xlabel(f"PSNR de la marque : {psnr2:.2f}", fontsize=8)
+    axes[1, 3].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
 
     # Poisson Noise
     img = noisy("poisson", watermarked)
@@ -257,9 +256,9 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
     axes[2, 3].set_title("Extracted Watermark")
     axes[2, 3].imshow(extracted, cmap='gray')
     psnr1 = compute_psnr(originalImage, img)
-    psnr2 = compute_psnr(originalMarque, extracted)
-    axes[2, 2].set_xlabel(f"PSNR de l'image : {psnr1:.2f}", fontsize=8)
-    axes[2, 3].set_xlabel(f"PSNR de la marque : {psnr2:.2f}", fontsize=8)
+    NCC2 = NCC(originalMarque, extracted)
+    axes[2, 2].set_xlabel(f"PSNR : {psnr1:.2f}", fontsize=8)
+    axes[2, 3].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
 
     # Speckle Noise
     img = noisy("speckle", watermarked)
@@ -270,9 +269,9 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
     axes[3, 3].set_title("Extracted Watermark")
     axes[3, 3].imshow(extracted, cmap='gray')
     psnr1 = compute_psnr(originalImage, img)
-    psnr2 = compute_psnr(originalMarque, extracted)
-    axes[3, 2].set_xlabel(f"PSNR de l'image : {psnr1:.2f}", fontsize=8)
-    axes[3, 3].set_xlabel(f"PSNR de la marque : {psnr2:.2f}", fontsize=8)
+    NCC2 = NCC(originalMarque, extracted)
+    axes[3, 2].set_xlabel(f"PSNR : {psnr1:.2f}", fontsize=8)
+    axes[3, 3].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
 
 
     plt.show()
