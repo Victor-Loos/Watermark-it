@@ -199,8 +199,9 @@ Temporary Items
 
 # Image and folder
 original/
-result/
+#result/
 result/arch/
+attack/
 
 #*.png
 #*.jpg

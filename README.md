@@ -23,7 +23,60 @@
 
 ## Fonctionnement
 
-YCbCr -> DWT LL -> 8x8 -> DCT -> Flipping -> IDCT -> IDWT LL -> YCbCr
+Organigramme :
+
+Insertion de la marque dans l'image
+```mermaid
+flowchart TD
+    AA([Début]) --> A1[\Image\]
+    AA--> A3[\Mot de passe\]
+    AA--> A2[\Marque\]
+
+    A1--> B1(Conversion : fa:fa-scissors <br>taille, Y'CbCr)
+    A1--> |Taille| B3(Génération de positions : fa:fa-lock <br>suite de hash du mdp)
+    
+    A2-->|Taille| B3
+    A2-->|Image / Texte| B2(Conversion : fa:fa-scissors <br>niveaux de gris, binaire)
+    A3-->|Chaîne de caractères| B3
+
+    B1-->|Chrominance : Cb, Cr| H
+    B1-->|Luminance : Y| C[[DWT niveau 1]]
+
+    C-->|Bande : HL, LH, HH| G
+
+    C-->|Bande : LL| D1[[DCT bloque 8x8]] 
+
+    D1-->|Coefficients| E{Insertion <br> fa:fa-arrows-rotate <br> Permutation de fréquence }
+    B2-->|Format binaire| E
+    B3-->|Coordonnées x, y| E
+
+    E-->|Coefficient| F[[IDCT bloque 8x8]]
+    F-->|Bande : LL| G[[IDWT]]
+    
+    G-->|Luminance : Y| H[/Recomposition de l'image filigranée/]
+    
+    H-->I([Fin])
+```
+
+Extraction de la marque de l'image
+```mermaid
+flowchart TD
+    AA([Début])--> A1
+    A1[\Image filigranée\]-->B1(Conversion : <br> Y'CbCr)
+    A1--> |Taille| B3
+    A2[\Mot de passe\]-->|Chaîne de caractères| B3(Génération de positions : fa:fa-lock <br>suite de hash du mdp)
+
+    
+
+    B1--> |Luminance : Y| C[[DWT niveau 1]]
+    C--> |Bande : LL| D1[[DCT bloque 8x8]]  
+
+    D1--> |Coefficients| E{Extraction <br> fa:fa-arrows-rotate <br> Comparaison de fréquence }
+    B3--> |Coordonnées x, y| E
+
+    E--> |Format binaire| F[/Conversion du format de la marque/]
+    F--> G([Fin])
+```
 
 (1/16)/1,3 de l'image : Pour calculer plus rapidement les positions
 Conversion de l'image au multiple de 8 inférieurs le plus proche : Pour l'utilisation de la DCT sur les blocs de 8x8 pixels
@@ -125,4 +178,4 @@ Intéréssant :
 [DWT-and-DCT-watermarking](https://github.com/ChanonTonmai/DWT-and-DCT-watermarking) (non robuste)
 [DCT-DWT-SVD-Digital-Watermarking](https://github.com/cyanaryan/DCT-DWT-SVD-Digital-Watermarking) (non aveugle)
 [image_watermarking](https://github.com/lakshitadodeja/image_watermarking) (ex for dwt, dct, dft,svd and dwt-svd)
-
+[digital-watermarking](https://github.com/hieunguyen1053/digital-watermarking) (choix des actions)

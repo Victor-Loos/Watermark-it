@@ -72,6 +72,23 @@ def convertMark(imageName, Msize):
     return markArray
 
 
+def getMarkSize(imageName):
+    # Get the size of the mark
+    imageArray, colors, size = convertImage(imageName)
+    Msize = (int(((size[1]/2)/8)/x), int(((size[0]/2)/8)/x)) # DCT + Block + random
+
+    # Compare width and height of Msize and multiply the smallest
+    if Msize[0] < Msize[1]:
+        nbCoords = Msize[0] * Msize[0]
+    else:
+        nbCoords = Msize[1] * Msize[1]
+    Wlength = int(np.sqrt(nbCoords))
+    # Return the size of the mark :
+    # - for an image (the smaller of w*w or h*h) 
+    # - for a text (w*h/8)
+    return (Wlength, Wlength), int(Msize[0]*Msize[1]/8)
+
+
 ## Convert text 
 
 def utf8_to_binary(text: str):
@@ -291,7 +308,8 @@ def embeddedImage(coverImage, watermarkImage, password=None):
 
 
 def embeddedTexte(coverImage, texte, password=None):
-    if type(texte) == str:
+    # If the text ends with .txt, we read the file
+    if texte.endswith('.txt'): # os.path.isfile(texte):
         # read the text file with texte as the path
         with open(texte, 'r') as f:
             texte = f.read()
@@ -410,7 +428,7 @@ def recoverWatermark(image, password=None, Wsize=None):
     coeffsWatermarkedImage=list(pywt.wavedec2(data = imageArray, wavelet = 'haar', level = 1))
     dctWatermarkedCoeff = applyDCT(coeffsWatermarkedImage[0])
     
-    if password is not None: #todo
+    if password is not None:
         if len(password) > 0:
             # position shuffling
             pixel_positions = password_to_position(password, Isize, nbCoords)
@@ -531,4 +549,9 @@ watermarkeImage.save(Iresult)
 
 watermarkArray = recoverText(Iresult, password)
 print(watermarkArray) 
+"""
+
+## Other
+""" 
+imgMark, txtMark = getMarkSize(image)
 """

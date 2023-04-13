@@ -214,7 +214,7 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
     axes[3, 1].imshow(extracted, cmap='gray')
     psnr1 = compute_psnr(originalImage, img)
     NCC2 = NCC(originalMarque, extracted)
-    axes[3, 0].set_xlabel(f"PSNR de l'image : {psnr1:.2f}", fontsize=8)
+    axes[3, 0].set_xlabel(f"PSNR : {psnr1:.2f}", fontsize=8)
     axes[3, 1].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
 
 
@@ -244,7 +244,7 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
     axes[1, 3].imshow(extracted, cmap='gray')
     psnr1 = compute_psnr(originalImage, img)
     NCC2 = NCC(originalMarque, extracted)
-    axes[1, 2].set_xlabel(f"PSNR de l'image : {psnr1:.2f}", fontsize=8)
+    axes[1, 2].set_xlabel(f"PSNR : {psnr1:.2f}", fontsize=8)
     axes[1, 3].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
 
     # Poisson Noise
