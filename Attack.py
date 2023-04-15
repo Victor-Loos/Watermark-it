@@ -168,7 +168,7 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
 
     # Without attack
     extracted = recoverWatermark(Iresult, password)
-    axes[0, 0].set_title("Default Jpeg compression")
+    axes[0, 0].set_title("Default Jpeg compression (75%)")
     axes[0, 0].imshow(originalImage, cmap='gray')
     axes[0, 1].set_title("Recovered Watermark")
     axes[0, 1].imshow(extracted, cmap='gray')

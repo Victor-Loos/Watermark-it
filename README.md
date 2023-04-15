@@ -20,7 +20,6 @@
 - Non robuste aux attaques (rotation, déformation)
 
 
-
 ## Fonctionnement
 
 Organigramme :
@@ -82,6 +81,7 @@ flowchart TD
 Conversion de l'image au multiple de 8 inférieurs le plus proche : Pour l'utilisation de la DCT sur les blocs de 8x8 pixels
 
 
+
 ### Méthode d'insertion
 
 La méthode utilisée est celle du basculement de fréquence (Frequency-Flipping). Appliqué aux coefficients obtenus par la DCT des blocs de 8x8 pixel de l'image (matrice de normalisation DCT). L'idée est d'inverser 2 des coefficients de chaque bloc s'il ne respecte pas la règle suivante :
@@ -96,9 +96,34 @@ $$\begin{aligned}
 L'emplacement des deux coefficients DCT devraient avoir une valeur moyenne comparable pour la matrice de normalisation DCT 8x8. (ex : (4, 1) et (2, 3))
 
 
+
+### Exemple de calcul de la taille de la marque
+
+Pour une image de 2048x2048 pixels :
+1) DWT niveau 1 : donne 4 sous bandes (LL, LH, HL, HH) de 1024x1024 pixels
+2) DCT bloque 8x8 sur la bande LL : donne 128x128 blocs de 8x8 pixels
+3) Méthode de permutation de fréquence : insertion de 1 bit par bloc soit 16384 bit total (1/16 de l'image)
+La marque peut donc avoir une taille maximum de 128x128 pixels pour une image ou 2048 lettres pour un texte.
+
+Afin d'accélérer le calcul des positions, on divise la taille de la marque par 1,3 par rapport à la taille maximum d'insertion. (ex : 128x128 pixels / 1,3 = 98x98 pixels)
+
+- [ ] Modification possible de la méthode d'insertion pour augmenter le nombre de bit à insérer par bloc.
+
+
+
+
 ## Exemple d'utilisation
 
-### Watermarking avec une image
+### Interface graphique 
+(Gui : Tkinter)
+Fichier `watermark_it.py`
+
+### En ligne de commande
+(Interactive command line : inquirer)
+Fichier `main.py`
+
+### Avec Python
+#### Watermarking avec une image
 Fichier `watermark.py`
 ```python
 watermarkeImage = embeddedImage(image,marque, password) 
@@ -108,14 +133,14 @@ watermarkArray = recoverWatermark(result, password) # Wsize=(x, y) for specific 
 watermarkArray.save('result/recoveredWatermark.png')
 ```
 
-#### Affichage des images et comparaison
+##### Affichage des images et comparaison
 Fichier `display.py`
 ```python
 plotResult(image, marque, Iresult, Mresult, x)
 
 plotDiff(image, marque, Iresult, Mresult, x) 
 ```
-#### Attaque de l'image watermarkée
+##### Attaque de l'image watermarkée
 Fichier `attack.py`
 ```python
 # Vue groupée
@@ -124,7 +149,7 @@ attackAll(image, marque, Iresult, Mresult, x, password)
 attackOne(image, marque, Iresult, Mresult, x, password)
 ```
 
-### Watermarking avec du texte
+#### Watermarking avec du texte
 Fichier `watermark.py`
 ```python
 watermarkeImage = embeddedTexte(image,texte, password)
@@ -133,6 +158,10 @@ watermarkeImage.save(result)
 watermarkArray = recoverText(result, password)
 print(watermarkArray)
 ```
+
+### Sur Android
+Intégration dans l'application Android : [Watermarker](https://github.com/Skelrin/Watermarker)
+
 
 ## Résultats
 
@@ -146,10 +175,9 @@ Robustesse / Attaques
 
 ![attack](./result/attack.png)
 
+PSNR : peak signal to noise ratio, utilisé pour mesurer l'image après l'ajout du filigrane bon ou mauvais, plus le nombre est grand mieux c'est, plus de 35, il est difficile de voir la différence à l'œil nu.
 
-## Application
-
-Intégration dans l'application Android : [Watermarker](https://github.com/Skelrin/Watermarker)
+NCC : normalized cross correlation, utilisé pour mesurer la corrélation entre deux images, plus le nombre est grand mieux c'est. (entre 0 et 1)
 
 
 ### Archive
@@ -174,8 +202,8 @@ Référence :
 [Image-watermarking-using-DCT](https://github.com/voilentKiller0/Image-watermarking-using-DCT)
 
 Intéréssant :
-[blind_watermark](https://github.com/guofei9987/blind_watermark) (best ?)
-[DWT-and-DCT-watermarking](https://github.com/ChanonTonmai/DWT-and-DCT-watermarking) (non robuste)
-[DCT-DWT-SVD-Digital-Watermarking](https://github.com/cyanaryan/DCT-DWT-SVD-Digital-Watermarking) (non aveugle)
-[image_watermarking](https://github.com/lakshitadodeja/image_watermarking) (ex for dwt, dct, dft,svd and dwt-svd)
+[blind_watermark](https://github.com/guofei9987/blind_watermark) (best ?),
+[DWT-and-DCT-watermarking](https://github.com/ChanonTonmai/DWT-and-DCT-watermarking) (non robuste),
+[DCT-DWT-SVD-Digital-Watermarking](https://github.com/cyanaryan/DCT-DWT-SVD-Digital-Watermarking) (non aveugle),
+[image_watermarking](https://github.com/lakshitadodeja/image_watermarking) (ex for dwt, dct, dft,svd and dwt-svd),
 [digital-watermarking](https://github.com/hieunguyen1053/digital-watermarking) (choix des actions)

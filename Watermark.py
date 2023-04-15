@@ -544,7 +544,7 @@ watermarkArray.save(Mresult)
 
 ## Watermarking with text
 """ 
-watermarkeImage = embeddedTexte(image,texte, password)
+watermarkeImage = embeddedTexte(image, texte, password)
 watermarkeImage.save(Iresult)
 
 watermarkArray = recoverText(Iresult, password)
