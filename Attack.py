@@ -103,7 +103,7 @@ def noisy(noise_typ,image):
         return noisy
     
     elif noise_typ=="jpeg":
-        # encode image as a jpeg with quality 50
+        # encode image as a jpeg with quality 40
         encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 40]
         result, encimg = cv2.imencode('.jpg', image, encode_param)
         # decode image
@@ -111,6 +111,20 @@ def noisy(noise_typ,image):
         decimg = cv2.cvtColor(decimg, cv2.COLOR_BGR2RGB)
         decimg = cv2.cvtColor(decimg, cv2.COLOR_RGB2GRAY)
         return decimg
+    
+    elif noise_typ=="resize":
+        # resize image to 50% of its original size
+        noisy = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+        # inverse the resize operation
+        noisy = cv2.resize(noisy, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+        return noisy
+        """ # resize image to 25% of its original size
+        noisy = cv2.resize(image, None, fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
+        # inverse the resize operation
+        noisy = cv2.resize(noisy, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
+        return noisy """
+        
+        
 
 
 
@@ -274,6 +288,41 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
     axes[3, 3].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
 
 
+    plt.show()
+    
+    
+    # Create a figure with 2 rows and 2 columns
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(15, 9)) # (width, height)
+    fig.subplots_adjust(top=0.9, bottom=0.08, hspace=0.4, wspace=0.2, left=0.01, right=0.99)
+    # Remove the ticks from the plots
+    plt.setp(axes.flat, xticks=[], yticks=[])
+    # Set the title of the figure
+    fig.suptitle("Image Watermarking Attacks P2", fontsize=16)
+    
+    # Wrong Password
+    extracted = recoverWatermark(Iresult, "wrongPassword")
+    axes[0, 0].set_title("Wrong Password")
+    axes[0, 0].imshow(originalImage, cmap='gray')
+    axes[0, 1].set_title("Recovered Watermark")
+    axes[0, 1].imshow(extracted, cmap='gray')
+    psnr1 = compute_psnr(originalImage, watermarked)
+    NCC2 = NCC(originalMarque, extracted)
+    axes[0, 0].set_xlabel(f"PSNR : {psnr1:.2f}", fontsize=8)
+    axes[0, 1].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
+
+    # Resize Image
+    img = noisy("resize", watermarked)
+    cv2.imwrite("attack/resize.jpg", img) 
+    extracted = recoverWatermark("attack/resize.jpg", password)
+    axes[1, 0].set_title("Resize 50% Image")
+    axes[1, 0].imshow(img, cmap='gray')
+    axes[1, 1].set_title("Extracted Watermark")
+    axes[1, 1].imshow(extracted, cmap='gray')
+    psnr1 = compute_psnr(originalImage, img)
+    NCC2 = NCC(originalMarque, extracted)
+    axes[1, 0].set_xlabel(f"PSNR : {psnr1:.2f}", fontsize=8)
+    axes[1, 1].set_xlabel(f"NCC : {NCC2:.2f}", fontsize=8)
+    
     plt.show()
     
 

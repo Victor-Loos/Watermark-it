@@ -15,7 +15,7 @@
 - Marque format texte ou image
 
 ### Limites
-- Format d'image compatible : PNG, JPEG, BMP
+- Format d'image compatible : PNG, (GIF), JPG, (TIFF), BMP
 - Faible espace de stockage (1/16 de l'image max)
 - Non robuste aux attaques (rotation, déformation)
 
@@ -117,10 +117,12 @@ Afin d'accélérer le calcul des positions, on divise la taille de la marque par
 ### Interface graphique 
 (Gui : Tkinter)
 Fichier `watermark_it.py`
+![Tkinter_GUI](./result/Interface_GUI_python.png)
 
 ### En ligne de commande
-(Interactive command line : inquirer)
+(Interactive : inquirer)
 Fichier `main.py`
+![inquirer_CMD](./result/inquirer.png)
 
 ### Avec Python
 #### Watermarking avec une image
@@ -175,9 +177,9 @@ Robustesse / Attaques
 
 ![attack](./result/attack.png)
 
-PSNR : peak signal to noise ratio, utilisé pour mesurer l'image après l'ajout du filigrane bon ou mauvais, plus le nombre est grand mieux c'est, plus de 35, il est difficile de voir la différence à l'œil nu.
+PSNR : peak signal to noise ratio, utilisé pour mesurer l'image après l'ajout du filigrane, plus le nombre est grand mieux c'est. Au-dessus de 35, il est difficile de voir la différence à l'œil nu.
 
-NCC : normalized cross correlation, utilisé pour mesurer la corrélation entre deux images, plus le nombre est grand mieux c'est. (entre 0 et 1)
+NCC : normalized cross correlation, utilisé pour mesurer la corrélation entre la marque d'origine et après extraction, plus le nombre est grand mieux c'est. (entre 0 et 1)
 
 
 ### Archive
