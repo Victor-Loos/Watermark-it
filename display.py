@@ -33,9 +33,10 @@ def imageProcessing(image, marque, Iresult, Mresult, x):
     usedImage = np.array(usedImage)
 
     # Image used for watermark :
-    marqueImg = Image.open(marque).resize((Wlength, Wlength), 1)
-    marqueImg = marqueImg.convert('L')
-    marqueImg = marqueImg.point(lambda x: 0 if x < 128 else 255, '1')
+    img = cv2.resize(cv2.imread(marque, cv2.IMREAD_GRAYSCALE), (Wlength, Wlength))
+    img = cv2.threshold(img, 128, 255, cv2.THRESH_BINARY)[1]
+    markArray = np.array(img, dtype=float).reshape((Wlength, Wlength))
+    marqueImg = Image.fromarray(markArray)
 
     # Result watermarked image :
     waterimg = cv2.imread(Iresult)
@@ -47,7 +48,80 @@ def imageProcessing(image, marque, Iresult, Mresult, x):
     return readImage, usedImage, marqueImg, waterimg, recovwater
 
 
+def imageProcessingText(image, Iresult):
+    # Image used for cover :
+    _, usedImage, _ = convertImage(image)
+    usedImage = Image.merge('YCbCr', usedImage).convert('RGB')
+    usedImage = np.array(usedImage)
+
+    # Result watermarked image :
+    waterimg = cv2.imread(Iresult)
+    waterimg = cv2.cvtColor(waterimg, cv2.COLOR_BGR2RGB)
+    
+    return usedImage, waterimg
+
+
 ### Visualisation ###
+
+
+def plot_table(data, marque):
+    title_text = 'Text attack results'
+    #fig_background_color = 'skyblue'
+    #fig_border = 'steelblue'
+    # Define the original text
+    original_text = "Text : " + marque
+
+    # Pop the headers from the data array
+    column_headers = data.pop(0)
+    row_headers = [x.pop(0) for x in data]
+
+    # Table data needs to be non-numeric text.
+    cell_text = []
+    for row in data:
+        cell_text.append([str(x) for x in row])
+
+    # Get some lists of color specs for row and column headers
+    rcolors = plt.cm.BuPu(np.full(len(row_headers), 0.1))
+
+    # Define the width of each column
+    col_widths = [0.9, 0.07]
+
+    # Create the figure.
+    plt.figure(linewidth=2,
+            #edgecolor=fig_border,
+            #facecolor=fig_background_color,
+            tight_layout={'pad':1},
+            figsize=(12, 6)
+            )
+
+    # Add a text box under the title
+    plt.figtext(0.5, 0.9, original_text, ha='center', va='center', fontsize=12)#, fontweight='bold')
+
+    # Add a table at the bottom of the axes
+    the_table = plt.table(cellText=cell_text,
+                        rowLabels=row_headers,
+                        rowColours=rcolors,
+                        rowLoc='left',  # move row header to the left
+                        cellLoc='left',  # move cell contents to the left
+                        colLabels=column_headers,
+                        colWidths=col_widths,
+                        loc='center')
+
+    # Scaling is the only influence we have over top and bottom cell padding.
+    # Make the rows taller (i.e., make cell y scale larger).
+    the_table.scale(1, 2)
+    # Hide axes
+    ax = plt.gca()
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    # Hide axes border
+    plt.box(on=None)
+    # Add title
+    plt.suptitle(title_text)
+    # Force the figure to update, so backends center objects correctly within the figure.
+    plt.show()
+
+
 
 #### Display results ####
 def plotResult(readImage, marqueImg, waterimg, recovwater, x):

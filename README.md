@@ -181,6 +181,7 @@ PSNR : peak signal to noise ratio, utilisé pour mesurer l'image après l'ajout 
 
 NCC : normalized cross correlation, utilisé pour mesurer la corrélation entre la marque d'origine et après extraction, plus le nombre est grand mieux c'est. (entre 0 et 1)
 
+![attack de texte](./result/Robustesse_texte.png)
 
 ### Archive
 

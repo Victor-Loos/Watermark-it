@@ -7,6 +7,8 @@ import numpy as np
 from watermark import *
 from display import *
 
+from sklearn.feature_extraction.text import CountVectorizer
+
 
 # Peak Signal to Noise Ratio
 def compute_psnr(img1, img2):
@@ -28,6 +30,17 @@ def NCC(img1, img2):
     img2 = img2.astype(float) / 255.
     return np.sum(img1 * img2) / (np.sqrt(np.sum(img1 ** 2)) * np.sqrt(np.sum(img2 ** 2)))
     
+# Normalized cross correlation for text
+def NCC_text(text1, text2):
+    # returns 1 if the texts are identical
+    if text1 == text2:
+        return 1.000
+    vectorizer = CountVectorizer()
+    X = vectorizer.fit_transform([text1, text2]).toarray()
+    mu1, sigma1 = np.mean(X[0]), np.std(X[0])
+    mu2, sigma2 = np.mean(X[1]), np.std(X[1])
+    ncc = np.sum((X[0] - mu1) * (X[1] - mu2)) / (sigma1 * sigma2 * len(X[0]))
+    return round(ncc, 3) if not np.isnan(ncc) else 0.000
 
 
 
@@ -325,6 +338,89 @@ def attackAll(image, marque, Iresult, Mresult, x, password):
     
     plt.show()
     
+
+
+
+
+def attackAllText(image, marque, Iresult, password):
+    ### Read images ###
+    usedImage, waterimg  = imageProcessingText(image, Iresult)
+    originalImage = usedImage
+    originalImage = cv2.cvtColor(originalImage, cv2.COLOR_BGR2GRAY)
+    watermarked = cv2.cvtColor(waterimg, cv2.COLOR_BGR2GRAY)
+    
+    
+    jpegDef = recoverText(Iresult, password)
+    jpegDef = jpegDef[:len(marque)]
+    
+    img = noisy("jpeg", watermarked)
+    cv2.imwrite("attack/jpeg.jpg", img) 
+    jpegFourty = recoverText("attack/jpeg.jpg", password)
+    jpegFourty = jpegFourty[:len(marque)]
+    jpegFourtyNCC = NCC_text(marque, jpegFourty)
+    
+    img = noisy("rotate90", watermarked)
+    cv2.imwrite("attack/rotate90.jpg", img) 
+    rotat = recoverText("attack/rotate90.jpg", password)
+    rotat = rotat[:len(marque)]
+    rotatNCC = NCC_text(marque, rotat)
+    
+    img = noisy("chop30", watermarked)
+    img = restoreCrop(img, originalImage)
+    cv2.imwrite("attack/chop30.jpg", img)
+    chop = recoverText("attack/chop30.jpg", password)
+    chop = chop[:len(marque)]
+    chopNCC = NCC_text(marque, chop)
+    
+    img = noisy("gauss", watermarked)
+    cv2.imwrite("attack/gauss.jpg", img)
+    gauss = recoverText("attack/gauss.jpg", password)
+    gauss = gauss[:len(marque)]
+    gaussNCC = NCC_text(marque, gauss)
+    
+    img = noisy("s&p", watermarked)
+    cv2.imwrite("attack/s&p.jpg", img)
+    sAndp = recoverText("attack/s&p.jpg", password)
+    sAndp = sAndp[:len(marque)]
+    sAndpNCC = NCC_text(marque, sAndp)
+    
+    img = noisy("poisson", watermarked)
+    cv2.imwrite("attack/poisson.jpg", img)
+    poisson = recoverText("attack/poisson.jpg", password)
+    poisson = poisson[:len(marque)]
+    poissonNCC = NCC_text(marque, poisson)
+    
+    img = noisy("speckle", watermarked)
+    cv2.imwrite("attack/speckle.jpg", img)
+    speckle = recoverText("attack/speckle.jpg", password)
+    speckle = speckle[:len(marque)]
+    speckleNCC = NCC_text(marque, speckle)
+    
+    wrongPass = recoverText(Iresult, "wrongPassword")
+    wrongPass = wrongPass[:len(marque)]
+    wrongPassNCC = NCC_text(marque, wrongPass)
+    
+    img = noisy("resize", watermarked)
+    cv2.imwrite("attack/resize.jpg", img) 
+    resize = recoverText("attack/resize.jpg", password)
+    resize = resize[:len(marque)]
+    resizeNCC = NCC_text(marque, resize)
+    
+    data =  [
+    [            'Modified Text', 'NCC'],
+    ['Default Jpeg (75%)', jpegDef, jpegFourtyNCC],
+    ['Jpeg 40%', jpegFourty, jpegFourtyNCC],
+    ['Rotate 90°', rotat, rotatNCC],
+    ['Chop 30%', chop, chopNCC],
+    ['Gaussian Noise', gauss, gaussNCC],
+    ['Salt and Pepper', sAndp, sAndpNCC],
+    ['Poisson Noise', poisson, poissonNCC],
+    ['Speckle Noise', speckle, speckleNCC],
+    ['Wrong password', wrongPass, wrongPassNCC],
+    ['Resize 50%', resize, resizeNCC],
+    ]
+    
+    plot_table(data, marque)
 
 
 #### Plot individual images ####

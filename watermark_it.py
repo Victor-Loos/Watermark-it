@@ -262,8 +262,11 @@ class App(customtkinter.CTk):
             # Pass the image, the mark path and password to the embeddedImage function
             watermarkeImage = embeddedImage(self.last_image_path, self.last_mark_path, password)
             
+            # Save the watermarked image in system dowlnoad folder with the 'bicubic' interpolation
+            #watermarkeImage.save(os.path.join(os.path.expanduser('~'), 'Downloads', 'watermarked_image.jpg'), interpolation="bicubic")
             # Save the watermarked image in system dowlnoad folder with jpg quality 80 (default is 75)
             watermarkeImage.save(os.path.join(os.path.expanduser('~'), 'Downloads', 'watermarked_image.jpg'))#, quality=80)
+            
             # Show the watermarked image in the file system
             opener = "open" if sys.platform == "darwin" else "xdg-open"
             subprocess.call([opener, os.path.join(os.path.expanduser('~'), 'Downloads', 'watermarked_image.jpg')])
@@ -363,18 +366,25 @@ class App(customtkinter.CTk):
     def attack_image(self):
         self.progressbar.start()
         x = 1.3
-        image = self.last_image_path
-        marque = self.last_mark_path
-        Iresult = self.last_wimg_path
-        Mresult = self.last_emark_path
-        
         # Get the password from the password entry if it is not empty
         if self.password_entry.get() != "":
             password = self.password_entry.get()
         else:
             password = None
-            
-        attackAll(image, marque, Iresult, Mresult, x, password)
+        image = self.last_image_path
+        Iresult = self.last_wimg_path
+        
+        tabview = self.tabview.get()
+        if tabview == "Image":
+            marque = self.last_mark_path
+            Mresult = self.last_emark_path
+                
+            attackAll(image, marque, Iresult, Mresult, x, password)
+        elif tabview == "Texte":
+            marque = self.textbox.get("0.0", "end")
+
+            attackAllText(image, marque, Iresult, password)
+        
         self.progressbar.stop()
 
 
