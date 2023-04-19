@@ -165,6 +165,12 @@ print(watermarkArray)
 Intégration dans l'application Android : [Watermarker](https://github.com/Skelrin/Watermarker)
 
 
+| Login                                          | Insertion                                          | Extraction                                       | Gallery                                   |
+| ---------------------------------------------- | -------------------------------------------------- | ------------------------------------------------ | ----------------------------------------- |
+| ![display1](./result/android/login_screen.png) | ![display1](./result/android/watermark_screen.png) | ![display1](./result/android/recover_screen.png) | ![display1](./result/android/gallery.png) |
+
+
+
 ## Résultats
 
 Différences

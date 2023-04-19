@@ -319,16 +319,16 @@ class App(customtkinter.CTk):
             # Pass the image path and password to the recoverWatermark function
             watermarkArray = recoverWatermark(self.last_wimg_path, password)
             # Save the extracted mark image in system dowlnoad folder
-            watermarkArray.save(os.path.join(os.path.expanduser('~'), 'Downloads', 'extracted_mark.png'))
+            watermarkArray.save(os.path.join(os.path.expanduser('~'), 'Downloads', 'extracted_mark.jpg'))
             # Show the extracted mark image in the file system
             opener = "open" if sys.platform == "darwin" else "xdg-open"
-            subprocess.call([opener, os.path.join(os.path.expanduser('~'), 'Downloads', 'extracted_mark.png')])
+            subprocess.call([opener, os.path.join(os.path.expanduser('~'), 'Downloads', 'extracted_mark.jpg')])
             
             # Save the extracted mark image in the configuration file
-            self.last_emark_path = os.path.join(os.path.expanduser('~'), 'Downloads', 'extracted_mark.png')
+            self.last_emark_path = os.path.join(os.path.expanduser('~'), 'Downloads', 'extracted_mark.jpg')
             if not self.config.has_section("General"):
                 self.config.add_section("General")
-            self.config.set("General", "last_emark_path", os.path.join(os.path.expanduser('~'), 'Downloads', 'extracted_mark.png'))
+            self.config.set("General", "last_emark_path", os.path.join(os.path.expanduser('~'), 'Downloads', 'extracted_mark.jpg'))
             with open("config.ini", "w") as config_file:
                 self.config.write(config_file)
                 
