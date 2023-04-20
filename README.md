@@ -162,7 +162,7 @@ print(watermarkArray)
 ```
 
 ### Sur Android
-Intégration dans l'application Android : [Watermarker](https://github.com/Skelrin/Watermarker)
+Intégration dans l'application Android : [Watermarker](https://github.com/Skelrin/Watermark-it)
 
 
 | Login                                          | Insertion                                          | Extraction                                       | Gallery                                   |
